@@ -1,0 +1,14 @@
+#!/bin/bash
+
+echo -e "🍕 [RSPEC] --> init (wait a second)"
+
+RESULT=$(docker-compose run engine rspec 2>&1)
+FAILS=`echo "$RESULT" | grep -E '(\d*) failure(s?)' -o | awk '{print $1}'`
+
+if [ $FAILS -ne 0 ]; then
+  echo -e "🍕 [RSPEC] --> ✋ Can't commit! You've broken $FAILS tests!!!\a"
+  exit 1
+else
+  echo -e "🍕 [RSPEC] --> 👍 Commit approved."
+  exit 0
+fi

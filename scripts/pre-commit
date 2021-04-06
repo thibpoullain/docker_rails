@@ -1,0 +1,17 @@
+#!/bin/sh
+
+HOOKS="pre-commit-prevent-master"
+
+for hook in $HOOKS; do
+  if [ -f "$PWD/.git/hooks/$hook" ]; then
+    "$PWD/.git/hooks/$hook"
+    if [ $? != 0 ]; then
+      exit 1
+    fi
+  else
+    echo -e "Error: file $hook not found.\a"
+    exit 1
+  fi
+done
+
+exit 0
