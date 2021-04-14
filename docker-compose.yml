@@ -41,9 +41,11 @@ services:
       - .:/app
       - gem_cache:/usr/local/bundle/gems
       - node_modules:/app/node_modules
+      - '/project/tmp' # Do not mount tmp folder
     env_file: .env
     environment:
       RAILS_ENV: development
+      REDIS_URL: "redis://redis:6379/12"
     entrypoint: ./scripts/docker_sidekiq_entrypoint.sh
 
 volumes:
