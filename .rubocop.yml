@@ -1,8 +1,10 @@
 require:
   - rubocop-rails
+  - rubocop-performance
+  - rubocop-rspec
 
 AllCops:
-  TargetRubyVersion: 3.0.0
+  TargetRubyVersion: 3.0.1
   DisabledByDefault: true
   Exclude:
     - "**/tmp/**/*"
@@ -11,6 +13,70 @@ AllCops:
     - "**/.git/**/*"
     - "**/db/**/*"
     - "**/bin/**/*"
+  NewCops: enable
+
+########### RAILS #################################
+
+# https://docs.rubocop.org/projects/rails/en/stable/cops_rails/#railsoutput
+Rails/Output:
+  Enabled: false
+
+Rails:
+  Enabled: true
+
+Rails/ActiveRecordAliases:
+  Enabled: false
+
+Rails/FilePath:
+  Enabled: false
+
+Rails/SkipsModelValidations:
+  Enabled: false
+
+Rails/Output:
+  Enabled: false
+
+Rails/CreateTableWithTimestamps:
+  Enabled: false
+
+Rails/BulkChangeTable:
+  Enabled: false
+
+Rails/ActiveRecordCallbacksOrder:
+  Enabled: true
+
+Rails/FindById:
+  Enabled: true
+
+Rails/Inquiry:
+  Enabled: true
+
+Rails/MailerName:
+  Enabled: true
+
+Rails/MatchRoute:
+  Enabled: true
+
+Rails/NegateInclude:
+  Enabled: true
+
+Rails/Pluck:
+  Enabled: true
+
+Rails/PluckInWhere:
+  Enabled: true
+
+Rails/RenderInline:
+  Enabled: true
+
+Rails/RenderPlainText:
+  Enabled: true
+
+Rails/ShortI18n:
+  Enabled: true
+
+Rails/WhereExists:
+  Enabled: true
 
 # Prefer assert_not over assert !
 Rails/AssertNot:
@@ -22,9 +88,30 @@ Rails/RefuteMethods:
   Include:
     - "**/spec/**/*"
 
-# Prefer &&/|| over and/or.
-Style/AndOr:
+
+########### RSPEC #################################
+
+# https://docs.rubocop.org/projects/rspec/en/latest/cops_rspec/#rspecimplicitexpect
+RSpec/ImplicitExpect:
+  EnforcedStyle: should
+
+# https://docs.rubocop.org/projects/rspec/en/latest/cops_rspec/#rspecimplicitsubject
+RSpec/ImplicitSubject:
+  Enabled: false
+
+########### LAYOUT #################################
+
+# https://www.rubydoc.info/gems/rubocop/RuboCop/Cop/Layout/SpaceAroundMethodCallOperator
+Layout/SpaceAroundMethodCallOperator:
   Enabled: true
+
+# https://www.rubydoc.info/gems/rubocop/RuboCop/Cop/Layout/TrailingWhitespace
+Layout/TrailingWhitespace:
+  Enabled: false
+
+# Commonly used screens these days easily fit more than 80 characters.
+Layout/LineLength:
+  Max: 100
 
 # Align `when` with `case`.
 Layout/CaseIndentation:
@@ -67,10 +154,6 @@ Layout/EmptyLinesAroundMethodBody:
 
 # In a regular module definition, no empty lines around the body.
 Layout/EmptyLinesAroundModuleBody:
-  Enabled: true
-
-# Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
-Style/HashSyntax:
   Enabled: true
 
 Layout/FirstArgumentIndentation:
@@ -119,20 +202,6 @@ Layout/SpaceBeforeComment:
 Layout/SpaceBeforeFirstArg:
   Enabled: true
 
-Style/DefWithParentheses:
-  Enabled: true
-
-# Defining a method with parameters needs parentheses.
-Style/MethodDefParentheses:
-  Enabled: true
-
-Style/FrozenStringLiteralComment:
-  Enabled: true
-  EnforcedStyle: always
-
-Style/RedundantFreeze:
-  Enabled: true
-
 # Use `foo {}` not `foo{}`.
 Layout/SpaceBeforeBlockBraces:
   Enabled: true
@@ -149,11 +218,6 @@ Layout/SpaceInsideHashLiteralBraces:
 Layout/SpaceInsideParens:
   Enabled: true
 
-# Check quotes usage according to lint rule below.
-Style/StringLiterals:
-  Enabled: true
-  EnforcedStyle: double_quotes
-
 # Detect hard tabs, no hard tabs.
 Layout/IndentationStyle:
   Enabled: true
@@ -166,8 +230,16 @@ Layout/TrailingEmptyLines:
 Layout/TrailingWhitespace:
   Enabled: true
 
-# Use quotes for string literals when they are enough.
-Style/RedundantPercentQ:
+
+
+########### LINT #################################
+
+# https://www.rubydoc.info/gems/rubocop/RuboCop/Cop/Lint/StructNewOverride
+Lint/StructNewOverride:
+  Enabled: true
+
+# https://www.rubydoc.info/gems/rubocop/RuboCop/Cop/Lint/RaiseException
+Lint/RaiseException:
   Enabled: true
 
 Lint/AmbiguousOperator:
@@ -198,6 +270,64 @@ Lint/UselessAssignment:
 Lint/DeprecatedClassMethods:
   Enabled: true
 
+
+########### STYLE #################################
+
+# https://www.rubydoc.info/gems/rubocop/RuboCop/Cop/Style/ExponentialNotation
+Style/ExponentialNotation:
+  Enabled: true
+
+# https://www.rubydoc.info/gems/rubocop/RuboCop/Cop/Style/HashEachMethods
+Style/HashEachMethods:
+  Enabled: true
+
+# https://www.rubydoc.info/gems/rubocop/RuboCop/Cop/Style/HashTransformKeys
+Style/HashTransformKeys:
+  Enabled: true
+
+# https://www.rubydoc.info/gems/rubocop/RuboCop/Cop/Style/HashTransformValues
+Style/HashTransformValues:
+  Enabled: true
+
+# https://www.rubydoc.info/gems/rubocop/RuboCop/Cop/Style/Documentation
+Style/Documentation:
+  Enabled: false
+
+# https://www.rubydoc.info/gems/rubocop/RuboCop/Cop/Style/ClassAndModuleChildren
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+# Use quotes for string literals when they are enough.
+Style/RedundantPercentQ:
+  Enabled: true
+
+# Prefer &&/|| over and/or.
+Style/AndOr:
+  Enabled: true
+
+Style/DefWithParentheses:
+  Enabled: true
+
+# Defining a method with parameters needs parentheses.
+Style/MethodDefParentheses:
+  Enabled: true
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
+Style/RedundantFreeze:
+  Enabled: true
+
+# Check quotes usage according to lint rule below.
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: double_quotes
+
+# Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
+Style/HashSyntax:
+  Enabled: true
+
 Style/ParenthesesAroundCondition:
   Enabled: true
 
@@ -221,3 +351,118 @@ Style/ColonMethodCall:
 
 Style/TrivialAccessors:
   Enabled: true
+
+Style/AutoResourceCleanup:
+  Enabled: true
+
+Style/BlockComments:
+  Exclude:
+    - 'spec/spec_helper.rb'
+
+Style/Encoding:
+  Enabled: true
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/ImplicitRuntimeError:
+  Enabled: true
+
+Style/RegexpLiteral:
+  Enabled: false
+
+Style/SingleLineBlockParams:
+  Enabled: true
+
+Style/StringLiterals:
+  Enabled: false
+
+Style/StringMethods:
+  Enabled: true
+
+Style/SymbolArray:
+  EnforcedStyle: brackets
+
+Style/MixinUsage:
+  Enabled: false
+
+Style/StderrPuts:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/HashEachMethods:
+  Enabled: true
+
+Style/HashTransformKeys:
+  Enabled: true
+
+Style/HashTransformValues:
+  Enabled: true
+
+Style/ExponentialNotation:
+  Enabled: true
+
+Style/RedundantFetchBlock:
+  Enabled: true
+
+Style/RedundantRegexpCharacterClass:
+  Enabled: true
+
+Style/RedundantRegexpEscape:
+  Enabled: true
+
+Style/SlicingWithRange:
+  Enabled: true
+
+Style/AccessorGrouping:
+  Enabled: true
+
+Style/ArrayCoercion:
+  Enabled: true
+
+Style/BisectedAttrAccessor:
+  Enabled: true
+
+Style/CaseLikeIf:
+  Enabled: true
+
+Style/ExplicitBlockArgument:
+  Enabled: true
+
+Style/GlobalStdStream:
+  Enabled: true
+
+Style/HashAsLastArrayItem:
+  Enabled: true
+
+Style/HashLikeCase:
+  Enabled: true
+
+Style/OptionalBooleanParameter:
+  Enabled: true
+
+Style/RedundantAssignment:
+  Enabled: true
+
+Style/RedundantFileExtensionInRequire:
+  Enabled: true
+
+Style/SingleArgumentDig:
+  Enabled: true
+
+Style/StringConcatenation:
+  Enabled: true
+
+
+### Metrics ###############################################
+
+# https://www.rubydoc.info/gems/rubocop/RuboCop/Cop/Metrics/BlockLength
+Metrics/BlockLength:
+  Enabled: false
+
+### Bundler ###############################################
+
+Bundler/OrderedGems:
+  Enabled: false
