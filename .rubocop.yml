@@ -1,6 +1,6 @@
 require:
-  - rubocop-rails
   - rubocop-performance
+  - rubocop-rails
   - rubocop-rspec
 
 AllCops:
@@ -31,9 +31,6 @@ Rails/FilePath:
   Enabled: false
 
 Rails/SkipsModelValidations:
-  Enabled: false
-
-Rails/Output:
   Enabled: false
 
 Rails/CreateTableWithTimestamps:
@@ -108,10 +105,6 @@ Layout/SpaceAroundMethodCallOperator:
 # https://www.rubydoc.info/gems/rubocop/RuboCop/Cop/Layout/TrailingWhitespace
 Layout/TrailingWhitespace:
   Enabled: false
-
-# Commonly used screens these days easily fit more than 80 characters.
-Layout/LineLength:
-  Max: 100
 
 # Align `when` with `case`.
 Layout/CaseIndentation:
@@ -226,11 +219,6 @@ Layout/IndentationStyle:
 Layout/TrailingEmptyLines:
   Enabled: true
 
-# No trailing whitespace.
-Layout/TrailingWhitespace:
-  Enabled: true
-
-
 
 ########### LINT #################################
 
@@ -342,9 +330,6 @@ Style/Semicolon:
   Enabled: true
   AllowAsExpressionSeparator: true
 
-Style/Documentation:
-  Enabled: false
-
 # Prefer Foo.method over Foo::method
 Style/ColonMethodCall:
   Enabled: true
@@ -362,9 +347,6 @@ Style/BlockComments:
 Style/Encoding:
   Enabled: true
 
-Style/FrozenStringLiteralComment:
-  Enabled: false
-
 Style/ImplicitRuntimeError:
   Enabled: true
 
@@ -374,35 +356,17 @@ Style/RegexpLiteral:
 Style/SingleLineBlockParams:
   Enabled: true
 
-Style/StringLiterals:
-  Enabled: false
-
 Style/StringMethods:
   Enabled: true
 
 Style/SymbolArray:
-  EnforcedStyle: brackets
+  EnforcedStyle: percent
 
 Style/MixinUsage:
   Enabled: false
 
 Style/StderrPuts:
   Enabled: false
-
-Style/Documentation:
-  Enabled: false
-
-Style/HashEachMethods:
-  Enabled: true
-
-Style/HashTransformKeys:
-  Enabled: true
-
-Style/HashTransformValues:
-  Enabled: true
-
-Style/ExponentialNotation:
-  Enabled: true
 
 Style/RedundantFetchBlock:
   Enabled: true
