@@ -1,0 +1,52 @@
+version: "3.8"
+services:
+  rails:
+    build:
+      context: .
+      dockerfile: Dockerfile_development
+    volumes:
+      - .:/app
+      - gem_cache:/usr/local/bundle/gems # Don't forget to remove the volume after update Gemfile
+      - node_modules:/app/node_modules    # Don't forget to remove the volume after update modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+    env_file: .env
+    environment:
+      RAILS_ENV: development
+
+  postgres:
+    image: postgres:12.1-alpine
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: pg_isready -U postgres -h 127.0.0.1
+      interval: 5s
+
+  redis:
+    image: redis:6.2.1-alpine
+
+  sidekiq:
+    build:
+      context: .
+      dockerfile: Dockerfile_development
+    depends_on:
+      - rails
+      - postgres
+      - redis
+    volumes:
+      - .:/app
+      - gem_cache:/usr/local/bundle/gems
+      - node_modules:/app/node_modules
+    env_file: .env
+    environment:
+      RAILS_ENV: development
+    entrypoint: ./scripts/docker_sidekiq_entrypoint.sh
+
+volumes:
+  gem_cache:
+  postgres:
+  node_modules:

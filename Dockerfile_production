@@ -1,0 +1,18 @@
+FROM vrizzt/rails-base-builder:2.7.2-alpine as Builder
+
+# Remove some files not needed in resulting image
+RUN rm .browserslistrc babel.config.js package.json postcss.config.js yarn.lock
+
+FROM vrizzt/rails-base-final:2.7.2-alpine
+LABEL maintainer="thibaut.poullain@ydrazil.fr"
+
+# Workaround for BuildKit to trigger Builder's ONBUILDs to finish
+COPY --from=Builder /etc/alpine-release /tmp/dummy
+
+# Add Alpine packages
+RUN apk add --no-cache imagemagick
+
+USER app
+
+# Start up
+CMD ["docker/startup.sh"]
