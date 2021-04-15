@@ -21,7 +21,7 @@ stages:
   services:
     - postgres:latest
   variables:
-    POSTGRES_DB: unac_gitlab
+    POSTGRES_DB: unac_backend_test
     POSTGRES_USER: unac
     POSTGRES_PASSWORD: unac
     RAILS_ENV: test
