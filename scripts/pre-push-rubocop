@@ -2,7 +2,7 @@
 
 echo -e "🤖 [RUBOCOP] --> Init (wait a second)"
 
-FAILS=`docker-compose run engine rubocop -a | grep 'no offenses detected' -o | awk '{print $1}'`
+FAILS=`rubocop -a | grep 'no offenses detected' -o | awk '{print $1}'`
 
 if [ "$FAILS" == "no" ]; then
   echo -e "🤖 [RUBOCOP] --> 👍 approved."

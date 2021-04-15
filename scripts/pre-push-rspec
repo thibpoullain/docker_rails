@@ -2,7 +2,7 @@
 
 echo -e "🍕 [RSPEC] --> init (wait a second)"
 
-RESULT=$(docker-compose run engine rspec 2>&1)
+RESULT=$(rspec 2>&1)
 FAILS=`echo "$RESULT" | grep -E '(\d*) failure(s?)' -o | awk '{print $1}'`
 
 if [ $FAILS -ne 0 ]; then

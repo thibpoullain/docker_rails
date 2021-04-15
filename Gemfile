@@ -30,6 +30,10 @@ gem "bootsnap", ">= 1.4.4", require: false
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
+  gem "bundler-audit", "~> 0.8.0"
+  gem "rails-erd", "~> 1.6"
+  gem "simplecov", "~> 0.21.2"
+  gem "dawnscanner", "~> 1.6"
   gem "brakeman", "~> 5.0"
   gem "byebug", platforms: %i[mri mingw x64_mingw]
   gem "rubocop"
@@ -58,4 +62,3 @@ end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[mingw mswin x64_mingw jruby]
-
