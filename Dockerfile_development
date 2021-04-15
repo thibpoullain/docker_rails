@@ -6,6 +6,7 @@ ENV LANG=C.UTF-8
 # Add basic packages
 RUN apk add --no-cache \
       build-base \
+      sqlite-dev \
       postgresql-dev \
       git \
       nodejs \
