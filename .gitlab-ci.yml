@@ -5,7 +5,7 @@ stages:
   - deploy
 
 .base:
-  image: ruby:2.6.3
+  image: ruby:2.7.2
   cache:
     key: gems_and_packages
     paths:
@@ -14,11 +14,7 @@ stages:
     policy: pull
   before_script:
     - gem install bundler --no-document
-    - bundle install --jobs $(nproc) "${FLAGS[@]}"
-
-.base_minimal:
-  image: alpine:latest
-  cache: {}
+    - bundle install --jobs $(nproc) "${FLAGS[@]}" --path=vendor
 
 .base_db:
   extends: .base
@@ -28,14 +24,23 @@ stages:
     POSTGRES_DB: unac_gitlab
     POSTGRES_USER: unac
     POSTGRES_PASSWORD: unac
-    RAILS_ENV: gitlab
+    RAILS_ENV: test
   before_script:
-    - apt-get update -qq && apt-get install -yqq nodejs
+    - export APT_CACHE_DIR=`pwd`/apt-cache && mkdir -pv $APT_CACHE_DIR
+    - apt-get update -qq && apt-get -o dir::cache::archives="$APT_CACHE_DIR" install -yqq nodejs
     - gem install bundler --no-document
     - bundle install --jobs $(nproc) "${FLAGS[@]}" --path=vendor
     - bundle exec rake db:setup
 
-################### BUILD ################################
+.base_minimal:
+  image: alpine:latest
+  cache: {}
+
+build:assets_precompile:
+  extends: .base_db
+  stage: build
+  script:
+    - bundle exec rake assets:precompile
 
 build:rubocop:
   extends: .base
@@ -44,20 +49,6 @@ build:rubocop:
     policy: pull-push
   script:
     - bundle exec rubocop
-
-build:assets_precompile:
-  extends: .base_db
-  stage: build
-  script:
-    - bundle exec rake assets:precompile
-
-test:bundle_audit:
-  extends: .base
-  allow_failure: true
-  script:
-    - bundle exec bundle audit check --update
-
-################### TEST ################################
 
 test:brakeman:
   extends: .base
@@ -72,6 +63,12 @@ test:brakeman:
     - master
   script:
     - bundle exec brakeman --format html -o brakeman/index.html
+
+test:bundle_audit:
+  extends: .base
+  allow_failure: true
+  script:
+    - bundle exec bundle audit check --update
 
 test:dawnscanner:
   extends: .base
@@ -88,7 +85,29 @@ test:dawnscanner:
     - mkdir dawnscanner
     - bundle exec dawn --html -zF dawnscanner/index.html .
 
-################### REPORT ################################
+test:erd:
+  extends: .base_db
+  stage: test
+  allow_failure: true
+  artifacts:
+    name: erd
+    paths:
+      - erd.pdf
+  only:
+    - master
+  script:
+    - apt-get -o dir::cache::archives="$APT_CACHE_DIR" install -y -qq graphviz
+    - bundle exec rake erd
+
+test:rspec:
+  extends: .base_db
+  stage: test
+  artifacts:
+    name: coverage_report
+    paths:
+      - coverage/
+  script:
+    - bundle exec rspec
 
 pages:
   extends: .base_minimal
@@ -100,21 +119,19 @@ pages:
     - test:erd
     - test:rspec
   artifacts:
-    name: my_app_artifacts
+    name: time_tracking_artifacts
     paths:
       - public/brakeman
       - public/coverage
       - public/dawnscanner
       - public/erd.pdf
   only:
-    - master
+    - staging
   script:
     - mv brakeman public/ || true
     - mv coverage public/ || true
     - mv dawnscanner public/ || true
     - mv erd.pdf public/ || true
-
-################### DEPLOY ################################
 
 deploy:staging:
   extends: .base
@@ -130,15 +147,8 @@ deploy:production:
   when: manual
   environment:
     name: production
-    url: https://unac-staging.ydrazil.fr
+    url: https://example.com
   only:
     - master
   script:
     - echo "Deploying to Production..."
-
-# include:
-#   - template: Dependency-Scanning.gitlab-ci.yml
-
-# bundler-audit-dependency_scanning:
-#   variables:
-#     SECURE_LOG_LEVEL: error
