@@ -33,132 +33,140 @@ stages:
     - bundle exec rails db:setup
 
 .base_alpine:
-  image: alpine:latest
+  image: ruby:2.7.3-alpine
   cache: {}
 
 
 ############### STAGE : BUILD #####################################
 
-build:assets_precompile:
-  extends: .base
-  stage: build
-  script:
-    - bundle exec rails assets:precompile
+# build:assets_precompile:
+#   extends: .base
+#   stage: build
+#   script:
+#     - bundle exec rails assets:precompile
 
-build:rubocop:
-  extends: .base
-  stage: build
-  cache:
-    policy: pull-push
-  script:
-    - bundle exec rubocop
+# build:rubocop:
+#   extends: .base
+#   stage: build
+#   cache:
+#     policy: pull-push
+#   script:
+#     - bundle exec rubocop
 
 ############### STAGE : TEST #####################################
 
-test:brakeman:
-  extends: .base
-  stage: test
-  allow_failure: true
-  artifacts:
-    name: brakeman_report
-    when: always
-    paths:
-      - brakeman/
-  only:
-    - master
-  script:
-    - bundle exec brakeman --format html -o brakeman/index.html
+# test:brakeman:
+#   extends: .base
+#   stage: test
+#   allow_failure: true
+#   artifacts:
+#     name: brakeman_report
+#     when: always
+#     paths:
+#       - brakeman/
+#   only:
+#     - master
+#     - staging
+#   script:
+#     - bundle exec brakeman --format html -o brakeman/index.html
 
-test:bundle_audit:
-  extends: .base
-  allow_failure: true
-  script:
-    - bundle exec bundle audit check --update
+# test:bundle_audit:
+#   extends: .base
+#   allow_failure: true
+#   script:
+#     - bundle exec bundle audit check --update
 
-test:dawnscanner:
-  extends: .base
-  stage: test
-  allow_failure: true
-  artifacts:
-    name: dawnscanner_report
-    when: always
-    paths:
-      - dawnscanner
-  only:
-    - master
-  script:
-    - mkdir dawnscanner
-    - bundle exec dawn --html -zF dawnscanner/index.html .
+# test:dawnscanner:
+#   extends: .base
+#   stage: test
+#   allow_failure: true
+#   artifacts:
+#     name: dawnscanner_report
+#     when: always
+#     paths:
+#       - dawnscanner
+#   only:
+#     - master
+#     - staging
+#   script:
+#     - mkdir dawnscanner
+#     - bundle exec dawn --html -zF dawnscanner/index.html .
 
-test:erd:
-  extends: .base
-  stage: test
-  allow_failure: true
-  artifacts:
-    name: erd
-    paths:
-      - erd.pdf
-  only:
-    - master
-  script:
-    - apt-get -o dir::cache::archives="$APT_CACHE_DIR" install -y -qq graphviz
-    - bundle exec rake erd
+# test:erd:
+#   extends: .base
+#   stage: test
+#   allow_failure: true
+#   artifacts:
+#     name: erd
+#     paths:
+#       - erd.pdf
+#   only:
+#     - master
+#   script:
+#     - apt-get -o dir::cache::archives="$APT_CACHE_DIR" install -y -qq graphviz
+#     - bundle exec rake erd
 
-test:rspec:
-  extends: .base_db
-  stage: test
-  artifacts:
-    name: coverage_report
-    paths:
-      - coverage/
-  script:
-    - bundle exec rspec
+# test:rspec:
+#   extends: .base_db
+#   stage: test
+#   artifacts:
+#     name: coverage_report
+#     paths:
+#       - coverage/
+#   script:
+#     - bundle exec rspec
 
 
 ############### STAGE : REPORT #####################################
 
-pages:
-  extends: .base_alpine
-  stage: report
-  allow_failure: true
-  dependencies:
-    - test:brakeman
-    - test:dawnscanner
-    - test:erd
-    - test:rspec
-  artifacts:
-    name: time_tracking_artifacts
-    paths:
-      - public/brakeman
-      - public/coverage
-      - public/dawnscanner
-      - public/erd.pdf
-  only:
-    - staging
-  script:
-    - mv brakeman public/ || true
-    - mv coverage public/ || true
-    - mv dawnscanner public/ || true
-    - mv erd.pdf public/ || true
+# pages:
+#   extends: .base_alpine
+#   stage: report
+#   allow_failure: true
+#   dependencies:
+#     - test:brakeman
+#     - test:dawnscanner
+#     - test:erd
+#     - test:rspec
+#   artifacts:
+#     name: time_tracking_artifacts
+#     paths:
+#       - public/brakeman
+#       - public/coverage
+#       - public/dawnscanner
+#       - public/erd.pdf
+#   only:
+#     - staging
+#   script:
+#     - mv brakeman public/ || true
+#     - mv coverage public/ || true
+#     - mv dawnscanner public/ || true
+#     - mv erd.pdf public/ || true
 
 ############### STAGE : DEPLOYS #####################################
 
 deploy:staging:
   extends: .base
   stage: deploy
-  only:
-    - staging
+  # only:
+  #   - staging
+  # variables:
+  #   - RAILS_ENV: staging
   script:
-    - echo "Deploying to Staging..."
+    # - curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
+    - bundle exec rake app:update:bin
+    - gem install dpl
+    - dpl --provider=heroku --app=unac-staging --api_key=$CI_HEROKU_API_KEY_STAGING
+    # - heroku run rails db:migrate --exit-code --app $CI_HEROKU_APP_NAME_STAGING
 
-deploy:production:
-  extends: .base
-  stage: deploy
-  when: manual
-  environment:
-    name: production
-    url: https://example.com
-  only:
-    - master
-  script:
-    - echo "Deploying to Production..."
+# deploy:production:
+#   extends: .base
+#   stage: deploy
+#   when: manual
+#   environment:
+#     name: production
+#     url: https://example.com
+#   only:
+#     - master
+#   script:
+#     - echo "Deploying to Production..."

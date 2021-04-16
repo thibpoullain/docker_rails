@@ -15,7 +15,16 @@ test:
   database: unac_backend_test
   password: unac
 
+staging:
+  <<: *default
+  database: unac_backend_staging
+  password: Rails.application.credentials.heroku[:database_password]
+  user: Rails.application.credentials.heroku[:database_user]
+  host: Rails.application.credentials.heroku[:database_host]
+
 production:
   <<: *default
   database: unac_backend_production
-  password: <%= ENV['UNAC_BACKEND_DATABASE_PASSWORD'] %>
+  password: Rails.application.credentials.heroku[:database_password]
+  user: Rails.application.credentials.heroku[:database_user]
+  host: Rails.application.credentials.heroku[:database_host]
