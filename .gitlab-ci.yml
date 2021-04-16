@@ -30,17 +30,20 @@ stages:
     - apt-get update -qq && apt-get -o dir::cache::archives="$APT_CACHE_DIR" install -yqq nodejs
     - gem install bundler --no-document
     - bundle install --jobs $(nproc) "${FLAGS[@]}" --path=vendor
-    - bundle exec rake db:setup
+    - bundle exec rails db:setup
 
-.base_minimal:
+.base_alpine:
   image: alpine:latest
   cache: {}
 
+
+############### STAGE : BUILD #####################################
+
 build:assets_precompile:
-  extends: .base_db
+  extends: .base
   stage: build
   script:
-    - bundle exec rake assets:precompile
+    - bundle exec rails assets:precompile
 
 build:rubocop:
   extends: .base
@@ -49,6 +52,8 @@ build:rubocop:
     policy: pull-push
   script:
     - bundle exec rubocop
+
+############### STAGE : TEST #####################################
 
 test:brakeman:
   extends: .base
@@ -86,7 +91,7 @@ test:dawnscanner:
     - bundle exec dawn --html -zF dawnscanner/index.html .
 
 test:erd:
-  extends: .base_db
+  extends: .base
   stage: test
   allow_failure: true
   artifacts:
@@ -109,8 +114,11 @@ test:rspec:
   script:
     - bundle exec rspec
 
+
+############### STAGE : REPORT #####################################
+
 pages:
-  extends: .base_minimal
+  extends: .base_alpine
   stage: report
   allow_failure: true
   dependencies:
@@ -132,6 +140,8 @@ pages:
     - mv coverage public/ || true
     - mv dawnscanner public/ || true
     - mv erd.pdf public/ || true
+
+############### STAGE : DEPLOYS #####################################
 
 deploy:staging:
   extends: .base
