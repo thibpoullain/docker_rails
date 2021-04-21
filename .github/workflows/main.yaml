@@ -1,0 +1,103 @@
+name: Continuous integration
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Get yarn cache
+        id: yarn-cache
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - uses: actions/cache@v2.1.4
+        with:
+          path: ${{ steps.yarn-cache.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install Node modules
+        run: yarn install --frozen-lockfile
+
+      - name: Lint with RuboCop
+        run: bundle exec rubocop --parallel
+
+      - name: Brakeman check
+        run: bundle exec brakeman -q -w2
+
+      - name: Bundle audit
+        run: bundle exec bundle audit --update
+
+      # - name: Dawnscanner
+      #   run: mkdir dawnscanner && bundle exec dawn --html -zF dawnscanner/index.html .
+
+      # - name: erd
+      #   run: |
+      #     apt-get -o dir::cache::archives="$APT_CACHE_DIR" install -y -qq graphviz
+      #     bundle exec rake erd
+
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13-alpine
+        ports: ["5432:5432"]
+        env:
+          POSTGRES_PASSWORD: postgres
+
+      redis:
+        image: redis:alpine
+        ports: ["6379:6379"]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Run Tests
+        env:
+          DB_HOST: localhost
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          RAILS_ENV: test
+          SECRET_KEY_BASE: we-dont-need-a-secret-here
+        run: |
+          bundle exec rake db:create db:schema:load
+          bundle exec rake spec
+
+  deploy:
+    runs-on: ubuntu-latest
+    # if: github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/master'
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Login to GitHub Package Registry
+        run: docker login https://docker.pkg.github.com -u ${{ secrets.USERNAME_GH }} -p ${{ secrets.PACKAGES_TOKEN }}
+
+      - name: Build, push and deploy the LATEST image
+        # if: github.ref == 'refs/heads/staging'
+        run: |
+          export COMMIT_TIME=$(git show -s --format=%cD ${GITHUB_SHA})
+          export COMMIT_SHA=${GITHUB_SHA}
+          docker build --build-arg COMMIT_TIME --build-arg COMMIT_SHA -t docker.pkg.github.com/thibpoullain/unac-backend/unac-backend:latest .
+          docker push docker.pkg.github.com/thibpoullain/unac-backend/unac-backend:latest
+
+      - name: Build and push the STABLE image
+        # if: github.ref == 'refs/heads/master'
+        run: |
+          docker build -t docker.pkg.github.com/thibpoullain/unac-backend/unac-backend:stable .
+          docker push docker.pkg.github.com/thibpoullain/unac-backend/unac-backend:stable
